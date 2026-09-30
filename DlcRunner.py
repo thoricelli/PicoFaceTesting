@@ -1,3 +1,4 @@
+import queue
 import sys
 
 import torch
@@ -8,8 +9,28 @@ import numpy as np
 
 import cv2
 
+from mjpeg.client import MJPEGClient
+
 from dlc import DlcLoader
-import ThreadedMJPEGCamera
+
+def latest_frame(client: MJPEGClient):
+    while True:
+        try:
+            buf = client.dequeue_buffer(block=False)
+        except queue.Empty:
+            break
+        
+        client.enqueue_buffer(buf)
+
+    buf = client.dequeue_buffer()
+
+    frame_bytes = memoryview(buf.data)[:buf.used]
+    frame_array = np.frombuffer(frame_bytes, dtype=np.uint8)
+    frame = cv2.imdecode(frame_array, cv2.IMREAD_COLOR)
+
+    client.enqueue_buffer(buf)
+    return frame
+    
 
 def main(dlc_loader: DlcLoader.DlcLoader, ip_camera_url: str):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -22,7 +43,13 @@ def main(dlc_loader: DlcLoader.DlcLoader, ip_camera_url: str):
     nn_model.to(device)
     nn_model.eval()
 
-    cam = ThreadedMJPEGCamera.ThreadedMJPEGCamera(ip_camera_url)
+    cam = MJPEGClient(ip_camera_url)
+
+    buffers = cam.request_buffers(65536, 50)
+    for b in buffers:
+        cam.enqueue_buffer(b)
+
+    cam.start()
 
     plt.ion()
     fig, axes = plt.subplots(1, len(output_dims), figsize=(10, 4))
@@ -51,9 +78,9 @@ def main(dlc_loader: DlcLoader.DlcLoader, ip_camera_url: str):
         }
 
     while True:
-        ret, frame = cam.read()
+        frame = latest_frame(cam)
 
-        if not ret:
+        if frame is None:
             continue
 
         cv2.imshow("Preview", frame)
@@ -100,8 +127,9 @@ def main(dlc_loader: DlcLoader.DlcLoader, ip_camera_url: str):
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
-    cam.release()
+    cam.stop()
     plt.close("all")
+    cv2.destroyAllWindows()
 
 if __name__ == "__main__":
     main(DlcLoader.DlcLoader(path=sys.argv[1]), sys.argv[2])

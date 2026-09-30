@@ -4,3 +4,4 @@ numpy
 opencv-python
 flatbuffers
 onnxscript
+py-mjpeg
