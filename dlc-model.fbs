@@ -1,0 +1,27 @@
+/*  
+    Qualcomm DeepLearning Container - Model v3
+    I don't get how nobody has written this yet, but here we are.
+    Original taken from the Netron source code. 
+*/
+
+include "dlc-common.fbs";
+
+table Node {
+    index: int32;
+    name: string;
+    type: string;
+    inputs: [string];
+    outputs: [string];
+    attributes: [Attribute];
+}
+
+table Model {
+    unk0: uint32;
+    nodes: [Node];
+    unk2: [int32];
+    unk3: [int32];
+    attributes: [Attribute];
+}
+
+file_identifier "NETD";
+root_type Model;

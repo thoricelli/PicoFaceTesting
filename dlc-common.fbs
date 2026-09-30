@@ -1,0 +1,20 @@
+/*  
+    Qualcomm DeepLearning Container - Common v3
+    Original taken from the Netron source code. 
+*/
+
+table Attribute {
+    name: string;
+    type: uint8;
+    bool_value: bool;
+    int32_value: int32;
+    uint32_value: uint32;
+    float32_value: float32;
+    string_value: string;
+    unk6: [int8];
+    byte_list: [int8];
+    int32_list: [int32];
+    float32_list: [float32];
+    unk10: [int8];
+    attributes: [Attribute];
+}

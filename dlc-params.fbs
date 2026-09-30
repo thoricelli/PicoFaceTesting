@@ -1,0 +1,72 @@
+/*  
+    Qualcomm DeepLearning Container - Params v3
+    Original taken from the Netron source code. 
+*/
+
+include "dlc-common.fbs";
+
+/*
+LS-byte: Size of the datatype.
+MS-byte:
+- 0 = signed int
+- 1 = unsigned int
+- 2 = float
+- 3 = signed fixed-point
+- 4 = unsigned fixed-point
+- 5 = bool 
+
+0x0508
+  ^  ^
+Bool  8 bits
+*/
+enum DataType: uint16 {
+    INT8 = 0x0008,
+    INT16 = 0x0016,
+    INT32 = 0x0032,
+    INT64 = 0x0064,
+    
+    UINT8 = 0x0108,
+    UINT16 = 0x0116,
+    UINT32 = 0x0132,
+    UINT64 = 0x0164,
+    
+    FLOAT16 = 0x0216,
+    FLOAT32 = 0x0232,
+
+    QINT4 = 0x0304,
+    QINT8 = 0x0308,
+    QINT16 = 0x0316,
+    QINT32 = 0x0332,
+    
+    QUINT4 = 0x0404,
+    QUINT8 = 0x0408,
+    QUINT16 = 0x0416,
+    QUINT32 = 0x0432,
+
+    BOOL = 0x0508
+}
+
+table TensorData {
+    d_type: uint16;
+    bytes: [uint8];
+    floats: [float32];
+}
+
+table Tensor {
+    name: string;
+    shape: [int32];
+    data: TensorData;
+    attributes: [Attribute];
+}
+
+table NodeParameter {
+    name: string;
+    weights: [Tensor];
+}
+
+table ModelParameters {
+    nodes: [NodeParameter];
+}
+
+root_type ModelParameters;
+file_identifier "NETP";
